@@ -1,7 +1,9 @@
 # main.py
-from fastapi import FastAPI, Request, Query, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse, HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+from typing import Optional, List, Dict
 import os, re, json, io
 from datetime import datetime
 
@@ -26,7 +28,6 @@ except ImportError:
 app = FastAPI(title="AI Complaint Analyzer")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Configure Gemini if available
 if GEMINI_AVAILABLE:
     gem_key = os.getenv("GEMINI_API_KEY")
     if gem_key:
@@ -35,13 +36,13 @@ if GEMINI_AVAILABLE:
     else:
         GEMINI_AVAILABLE = False
 
-# Simple keyword fallback
 KEYWORD_CATEGORY_MAP = {
     "Theft": ["stolen", "snatched", "robbery", "theft", "bike missing", "chain snatching"],
     "Accident": ["accident", "injured", "crash", "fatal", "collision"],
     "Power": ["power outage", "transformer", "electricity", "load shedding", "electric"],
     "Medical": ["health", "injury", "hospital", "ambulance", "critical"],
 }
+
 CATEGORY_ACTION_MAP = {
     "Theft": "Advise citizen to file a police report and provide identifying details.",
     "Accident": "Dispatch emergency services immediately.",
@@ -49,13 +50,46 @@ CATEGORY_ACTION_MAP = {
     "Medical": "Call nearest hospital or ambulance.",
     "Unknown": "Manual review"
 }
+
 PRIORITY_KEYWORDS = {
     "Critical": ["critical", "life threat", "fatal", "injury"],
     "High": ["urgent", "emergency"],
 }
 
+# -------------------------------
+# Pydantic Models for Swagger
+# -------------------------------
+class ComplaintRequest(BaseModel):
+    complaint: str
 
-def classify_fallback(complaint_text):
+class ComplaintUpdateStatus(BaseModel):
+    doc_id: str
+    status: str
+
+class ComplaintUpdatePriority(BaseModel):
+    doc_id: str
+    priority: str
+
+class ComplaintUpdateCategory(BaseModel):
+    doc_id: str
+    category: str
+
+class ComplaintDeleteRequest(BaseModel):
+    doc_id: str
+
+class ComplaintResponse(BaseModel):
+    doc_id: str
+    category: str
+    priority: str
+    summary: str
+    suggested_action: str
+    status: str
+    created_at: str
+
+# -------------------------------
+# Fallback classification
+# -------------------------------
+def classify_fallback(complaint_text: str) -> Dict:
     text_lower = complaint_text.lower()
     category = "Unknown"
     for cat, keywords in KEYWORD_CATEGORY_MAP.items():
@@ -74,21 +108,21 @@ def classify_fallback(complaint_text):
         "suggested_action": CATEGORY_ACTION_MAP.get(category, "Manual review"),
     }
 
-
+# -------------------------------
+# Endpoints
+# -------------------------------
 @app.get("/", response_class=HTMLResponse)
 def home():
     with open("templates/index.html", "r", encoding="utf-8") as f:
         return f.read()
 
 
-@app.post("/submit")
-async def submit_complaint(request: Request):
-    data = await request.json()
-    complaint_text = data.get("complaint", "")
+@app.post("/submit", response_model=ComplaintResponse)
+async def submit_complaint(data: ComplaintRequest):
+    complaint_text = data.complaint
     if not complaint_text:
         raise HTTPException(status_code=400, detail="Complaint text required")
 
-    # Try Gemini first
     if GEMINI_AVAILABLE:
         try:
             prompt = f"""
@@ -113,7 +147,7 @@ async def submit_complaint(request: Request):
     ai_result["created_at"] = datetime.utcnow().isoformat() + "Z"
     doc_id = add_complaint(ai_result)
     ai_result["doc_id"] = doc_id
-    return JSONResponse(ai_result)
+    return ai_result
 
 
 @app.get("/complaints")
@@ -126,13 +160,8 @@ def list_complaints(
     sort_by: str = Query("created_at"),
     sort_dir: str = Query("desc", regex="^(asc|desc)$"),
 ):
-    """
-    Returns paginated, filtered, searched complaints.
-    Search (q) will match doc_id, category, summary, status, priority (case-insensitive substring).
-    """
     all_docs = get_all_complaints()
 
-    # search filter
     def matches(item):
         if not q:
             return True
@@ -151,63 +180,42 @@ def list_complaints(
     if priority:
         filtered = [d for d in filtered if d.get("priority", "").lower() == priority.lower()]
 
-    # sort
     reverse = sort_dir == "desc"
     try:
         filtered.sort(key=lambda x: x.get(sort_by, ""), reverse=reverse)
     except Exception:
         filtered.sort(key=lambda x: x.get("created_at", ""), reverse=True)
 
-    # pagination
     total = len(filtered)
     start = (page - 1) * page_size
     end = start + page_size
     items = filtered[start:end]
 
-    return JSONResponse({"total": total, "page": page, "page_size": page_size, "items": items})
+    return {"total": total, "page": page, "page_size": page_size, "items": items}
 
 
 @app.post("/update_status")
-async def update_status(request: Request):
-    data = await request.json()
-    doc_id = data.get("doc_id")
-    new_status = data.get("status")
-    if not doc_id or not new_status:
-        raise HTTPException(status_code=400, detail="doc_id and status required")
-    update_complaint_status(doc_id, new_status)
-    return JSONResponse({"success": True})
+async def update_status_endpoint(data: ComplaintUpdateStatus):
+    update_complaint_status(data.doc_id, data.status)
+    return {"success": True}
 
 
 @app.post("/update_priority")
-async def update_priority(request: Request):
-    data = await request.json()
-    doc_id = data.get("doc_id")
-    new_priority = data.get("priority")
-    if not doc_id or not new_priority:
-        raise HTTPException(status_code=400, detail="doc_id and priority required")
-    update_complaint_priority(doc_id, new_priority)
-    return JSONResponse({"success": True})
+async def update_priority_endpoint(data: ComplaintUpdatePriority):
+    update_complaint_priority(data.doc_id, data.priority)
+    return {"success": True}
 
 
 @app.post("/update_category")
-async def update_category(request: Request):
-    data = await request.json()
-    doc_id = data.get("doc_id")
-    new_category = data.get("category")
-    if not doc_id or not new_category:
-        raise HTTPException(status_code=400, detail="doc_id and category required")
-    update_complaint_category(doc_id, new_category)
-    return JSONResponse({"success": True})
+async def update_category_endpoint(data: ComplaintUpdateCategory):
+    update_complaint_category(data.doc_id, data.category)
+    return {"success": True}
 
 
 @app.post("/delete_complaint")
-async def delete_complaint_endpoint(request: Request):
-    data = await request.json()
-    doc_id = data.get("doc_id")
-    if not doc_id:
-        raise HTTPException(status_code=400, detail="doc_id required")
-    delete_complaint(doc_id)
-    return JSONResponse({"success": True})
+async def delete_complaint_endpoint(data: ComplaintDeleteRequest):
+    delete_complaint(data.doc_id)
+    return {"success": True}
 
 
 @app.get("/export")
@@ -223,7 +231,7 @@ def export_csv(status: str = Query("", description="filter by status"), priority
 
 @app.get("/stats")
 def stats():
-    return JSONResponse(compute_stats())
+    return compute_stats()
 
 
 @app.get("/health")
