@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Complaint Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 { text-align: center; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #aaa;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        /* Priority-based row coloring */
+        .priority-critical { background-color: #ffcccc; } /* red */
+        .priority-high { background-color: #ffe0b3; } /* orange */
+        .priority-medium { background-color: #ffffcc; } /* yellow */
+        .priority-low { background-color: #ccffcc; } /* green */
+
+        /* Status-based row coloring */
+        .status-new { font-weight: bold; }
+        .status-in-progress { background-color: #cce5ff; } /* light blue */
+        .status-resolved { background-color: #d4edda; } /* green */
+    </style>
+</head>
+<body>
+    <h1>AI Complaint Dashboard</h1>
+
+    <div>
+        <h3>Submit New Complaint</h3>
+        <textarea id="complaintText" rows="3" cols="50" placeholder="Enter complaint here"></textarea><br>
+        <button onclick="submitComplaint()">Submit</button>
+    </div>
+
+    <div>
+        <h3>Complaints Table</h3>
+        <table id="complaintsTable">
+            <thead>
+                <tr>
+                    <th>Doc ID</th>
+                    <th>Category</th>
+                    <th>Summary</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Suggested Action</th>
+                    <th>Update Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Complaint rows will be inserted here dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function fetchComplaints() {
+            const response = await fetch("/complaints");
+            const data = await response.json();
+            const tableBody = document.getElementById("complaintsTable").getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = ""; 
+
+            // Sort: newest first
+            data.sort((a, b) => b.doc_id.localeCompare(a.doc_id));
+
+            data.forEach(complaint => addComplaintRow(complaint));
+        }
+
+        function addComplaintRow(complaint) {
+            const table = document.getElementById("complaintsTable").getElementsByTagName('tbody')[0];
+            const row = table.insertRow(0);
+
+            // Apply priority coloring
+            const priority = complaint.priority.toLowerCase();
+            if (priority === "critical") row.classList.add("priority-critical");
+            else if (priority === "high") row.classList.add("priority-high");
+            else if (priority === "medium") row.classList.add("priority-medium");
+            else if (priority === "low") row.classList.add("priority-low");
+
+            // Apply status coloring
+            const status = complaint.status.toLowerCase();
+            if (status === "in-progress") row.classList.add("status-in-progress");
+            else if (status === "resolved") row.classList.add("status-resolved");
+
+            row.insertCell(0).innerText = complaint.doc_id;
+            row.insertCell(1).innerText = complaint.category;
+            row.insertCell(2).innerText = complaint.summary;
+            row.insertCell(3).innerText = complaint.priority;
+            row.insertCell(4).innerText = complaint.status;
+            row.insertCell(5).innerText = complaint.suggested_action;
+
+            // Status dropdown
+            const cell = row.insertCell(6);
+            const select = document.createElement("select");
+            ["New", "In-Progress", "Resolved"].forEach(s => {
+                const option = document.createElement("option");
+                option.value = s;
+                option.text = s;
+                if (s.toLowerCase() === complaint.status.toLowerCase()) option.selected = true;
+                select.appendChild(option);
+            });
+            select.onchange = () => updateStatus(complaint.doc_id, select.value);
+            cell.appendChild(select);
+        }
+
+        async function submitComplaint() {
+            const complaintText = document.getElementById("complaintText").value;
+            if (!complaintText) {
+                alert("Please enter a complaint");
+                return;
+            }
+            const response = await fetch("/submit", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({complaint: complaintText})
+            });
+            const data = await response.json();
+            addComplaintRow(data);
+            document.getElementById("complaintText").value = "";
+        }
+
+        async function updateStatus(doc_id, status) {
+            await fetch("/update_status", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({doc_id, status})
+            });
+            fetchComplaints(); // refresh table
+        }
+
+        // Initial load
+        fetchComplaints();
+    </script>
+</body>
+</html>

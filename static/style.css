@@ -1,0 +1,32 @@
+/* Priority colors */
+.priority-critical {
+    color: red;
+    font-weight: bold;
+}
+
+.priority-high {
+    color: darkorange;
+}
+
+.priority-medium {
+    color: black;
+}
+
+.priority-low {
+    color: gray;
+}
+
+/* Status colors */
+.status-resolved {
+    color: green;
+    font-weight: bold;
+}
+
+.status-inprogress {
+    color: blue;
+    font-weight: bold;
+}
+
+.status-new {
+    color: black;
+}
