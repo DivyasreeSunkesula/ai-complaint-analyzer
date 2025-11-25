@@ -96,7 +96,7 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8080
 -  `page, page_size`: pagination
 - `sort_by, sort_dir`: sorting
 
-**3. Update Complaint Status**
+**3. Update Status Endpoint**
 - Endpoint: /update_status
 - Method: POST
 - **Description:** Updates the status of a complaint.
@@ -107,6 +107,40 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8080
   "status": "In-Progress"
   }
 ```
+**4. Update Priority Endpoint**
+- Endpoint: /update_priority
+- Method: POST
+- **Description:** Updates the priority of a complaint.
+- **Request Body:**
+```bash
+  {
+  "doc_id": "abc123",
+  "priority": "Critical"
+  }
+```
+
+**5. Update Category Endpoint**
+- Endpoint: /update_category
+- Method: POST
+- **Description:** Updates the category of a complaint.
+- **Request Body:**
+```bash
+  {
+  "doc_id": "abc123",
+  "category": "Accident"
+  }
+```
+**6. Delete Complaint Endpoint**
+- Endpoint: /delete_complaint
+- Method: POST
+- **Description:** Deletes a complaint.
+- **Request Body:**
+```bash
+  {
+ "doc_id": "abc123"
+  }
+```
+
   
   
 
