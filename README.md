@@ -78,7 +78,23 @@ export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account.json"
 ```bash
 uvicorn main:app --reload --host 0.0.0.0 --port 8080
 ```
-
+### Deployment to Google Cloud Run
+- **Set your project**
+```bash
+gcloud config set project ai-complaint-analyzer
+```
+- **Build the Docker image**
+```bash
+gcloud builds submit . --tag gcr.io/ai-complaint-analyzer/ai-complaint-analyzer:latest
+```
+- **Deploy to loud Run**
+```bash
+gcloud run deploy ai-complaint-analyzer \
+  --image gcr.io/ai-complaint-analyzer/ai-complaint-analyzer:latest \
+  --platform managed \
+  --region europe-west1 \
+  --allow-unauthenticated
+```
 5. Open the **UI:** http://0.0.0.0:8080
 
 6. Open **Swagger docs:** http://0.0.0.0:8080/docs
