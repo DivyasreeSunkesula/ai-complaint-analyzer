@@ -239,7 +239,7 @@ Realistic metrics depend on diverse, representative test datasets.
 - Tool: Locust
 - Simulate multiple users submitting complaints concurrently
 - Validate Cloud Run scaling behavior
-- Obaserve loud Run metrics at: https://console.cloud.google.com/run/detail/europe-west1/ai-complaint-analyzer/observability/metrics?orgonly=true&project=ai-complaint-analyzer&supportedpurview=organizationId
+- Obaserve Cloud Run metrics at: https://console.cloud.google.com/run/detail/europe-west1/ai-complaint-analyzer/observability/metrics?orgonly=true&project=ai-complaint-analyzer&supportedpurview=organizationId
     
 **Future Enhancements**
 - Real-time notifications for critical complaints
