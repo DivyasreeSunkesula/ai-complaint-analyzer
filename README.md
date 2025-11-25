@@ -141,6 +141,30 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8080
   }
 ```
 
+**7. Export CSV**
+- Endpoint: /export
+- Method: GET
+- Optional Query Parameters: status, priority
+
+**8. Statistics**
+- Endpoint: /stats
+- Method: GET
+Returns complaint counts, category distribution, priority distribution, and trends.
+
+**9. Health Check**
+- Endpoint: /health
+- Method: GET
+- Response: { "status": "ok" }
+
+**Dashboard**
+
+- Table: Paginated, searchable, sortable
+
+- Charts: Pie charts for category and priority distributions
+
+- CSV Export: Download filtered complaints
+
+Screenshot Example: docs/dashboard.png
   
   
 
