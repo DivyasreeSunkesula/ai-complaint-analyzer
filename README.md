@@ -22,6 +22,26 @@
 
 ![Architecture Diagram](docs/architecture.png)
 
+## Repository Structure
+```
+ai-complaint-analyzer/
+│
+├── main.py # FastAPI application
+├── agent.py # Firestore interactions & AI helpers
+├── db.py # Firestore CRUD helper functions
+├── evaluate_ai_metrics.py # AI evaluation script
+├── requirements.txt # Python dependencies
+├── service-account.json # (optional, use env variable instead)
+├── elasticity_test.py (Locust Load Testing)
+├── Dockerfile (ontainerization)
+├── templates/
+│ └── index.html # Frontend dashboard
+├── static/
+│ ├── style.css
+├── README.md
+└── venv/ # Python virtual environment
+```
+
 **Components**:
 
 1. **Frontend**: User input and result display  
@@ -29,7 +49,8 @@
 3. **Google Gemini AI**: Performs classification, prioritization, summarization, and action suggestions  
 4. **Firestore**: Stores complaints and AI results  
 5. **Cloud Run**: Scalable deployment of backend  
-6. **Dashboard**: Visualization of statistics and trends  
+6. **Dashboard**: Visualization of statistics and trends
+
 
 ## Installation
 
@@ -50,6 +71,7 @@ pip install -r requirements.txt
 ```bash
 export GEMINI_API_KEY="your_google_generative_ai_key"
 export PORT=8080
+export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account.json"
 ```
 
 4. **Run the application locally**
