@@ -165,6 +165,50 @@ Returns complaint counts, category distribution, priority distribution, and tren
 - CSV Export: Download filtered complaints
 
 Screenshot Example: docs/dashboard.png
+
+**AI Metrics**
+
+- Metrics are evaluated using Precision, Recall, and F1-score.
+
+- Use `evaluate_ai_metrics.py`:
+```bash
+python evaluate_ai_metrics.py
+```
+- Sample output
+```bash
+=== CATEGORY METRICS ===
+Theft: Precision=1.00, Recall=0.67, F1=0.80
+Accident: Precision=1.00, Recall=1.00, F1=1.00
+Power: Precision=0.00, Recall=0.00, F1=0.00
+Medical: Precision=0.67, Recall=1.00, F1=0.80
+Unknown: Precision=1.00, Recall=1.00, F1=1.00
+
+=== PRIORITY METRICS ===
+Critical: Precision=1.00, Recall=1.00, F1=1.00
+High: Precision=1.00, Recall=1.00, F1=1.00
+Medium: Precision=1.00, Recall=1.00, F1=1.00
+Low: Precision=1.00, Recall=1.00, F1=1.00
+
+=== OVERALL AVERAGE ===
+Category - Precision=0.96, Recall=0.96, F1=0.96
+Priority - Precision=1.00, Recall=1.00, F1=1.00
+```
+Realistic metrics depend on diverse, representative test datasets.  
+**Load & Elasticity Testing**
+- Tool: Locust
+- Simulate multiple users submitting complaints concurrently
+- Validate Cloud Run scaling behavior
+- Obaserve loud Run metrics at: https://console.cloud.google.com/run/detail/europe-west1/ai-complaint-analyzer/observability/metrics?orgonly=true&project=ai-complaint-analyzer&supportedpurview=organizationId
+    
+**Future Enhancements**
+- Real-time notifications for critical complaints
+- Multi-language support for citizen complaints
+- Advanced trend predictions using AI
+- Role-based dashboard with admin, officer and citizen views
   
-  
+**References**
+- FastAPI Documentation
+- Google Generative AI
+- Firestore Documentation
+- Locust Load Testing
 
