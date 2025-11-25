@@ -206,9 +206,9 @@ Realistic metrics depend on diverse, representative test datasets.
 - Advanced trend predictions using AI
 - Role-based dashboard with admin, officer and citizen views
   
-**References**
-- FastAPI Documentation
-- Google Generative AI
-- Firestore Documentation
-- Locust Load Testing
+**References**  
+[Google Cloud Run Documentation](https://cloud.google.com/run/docs)  
+[FastAPI Documentation](https://fastapi.tiangolo.com/)  
+[Google Generative AI](https://developers.generativeai.google/)
+
 
