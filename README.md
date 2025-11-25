@@ -202,7 +202,10 @@ Returns complaint counts, category distribution, priority distribution, and tren
 
 - CSV Export: Download filtered complaints
 
-Screenshot Example: docs/dashboard.png
+![Dashboard Diagram](docs/dashboard.png)
+
+![Pie Charts Diagram](docs/Pie_charts.png)
+
 
 **AI Metrics**
 
